@@ -5,8 +5,7 @@ const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;  // Module to create native browser window.
 const Menu = require("menu");
 const Dialog = require('dialog');
-const NeDB = require('nedb');
-const db = {};
+const Datastore = require('nedb');
 
 // Report crashes to our server.
 electron.crashReporter.start();
@@ -34,7 +33,7 @@ app.on('ready', function() {
 	mainWindow.loadURL('file://' + __dirname + '/index.html');
 
 	// Open the DevTools.
-	mainWindow.webContents.openDevTools();
+	//mainWindow.webContents.openDevTools();
 
 	//hello();
 	let template = [
@@ -57,19 +56,22 @@ app.on('ready', function() {
 								let fs = require('fs'),
 										readline = require('readline'),
     								rs = fs.ReadStream(filenames[0]),
-										rl = readline.createInterface({'input': rs, 'output': {}});
+										rl = readline.createInterface({'input': rs, 'output': {}}),
+										db = {};
 
-								db.logs = new NeDB({
-									filename: 'data/logs',
-									autoload: true
+							  db.logs = new Datastore({ filename: 'data/logs.db', autoload: true });
+								db.logs.remove({}, { multi: true }, (err, numRemoved) => {
+									console.log('remove ' + numRemoved + ' Records.');
 								});
+								db.logs.persistence.compactDatafile();
 
 								rl.on('line', line => {
 									db.logs.insert({name: line.trim()}, function(err, newDoc){});
 								});
 
-								db.logs.find({}, function(err, docs) {
-								  console.log(docs);
+								let i = 1;
+								db.logs.count({}, (err, count) => {
+								  console.log(i++ + ":" + count);
 								});
 
 								rl.resume();
