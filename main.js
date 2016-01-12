@@ -59,19 +59,19 @@ app.on('ready', function() {
                   rl = readline.createInterface({'input': rs, 'output': {}}),
                   db = {};
 
-                db.logs = new Datastore({ filename: 'data/logs.db', autoload: true });
+                db.logs = new Datastore({ filename: 'data/logs.db'});
+                db.logs.loadDatabase();
+
                 db.logs.remove({}, { multi: true }, (err, numRemoved) => {
-                  console.log('remove ' + numRemoved + ' Records.');
+                  console.log(`remove ${numRemoved} Records.`);
                 });
                 db.logs.persistence.compactDatafile();
 
                 rl.on('line', line => {
-                  db.logs.insert({name: line.trim()}, function(err, newDoc){});
-                });
-
-                let i = 1;
-                db.logs.count({}, (err, count) => {
-                  console.log(i++ + ':' + count);
+                  db.logs.insert({ log: line.trim() }, function(err){
+                    if (err)
+                      console.log(err);
+                  });
                 });
 
                 rl.resume();
